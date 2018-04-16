@@ -13,8 +13,7 @@
 #define CFG_CLK_SRC_MASK  (7 << 8)
 
 struct gpll0_ctrl {
-	uintptr_t status;
-	int status_bit;
+	uintptr_t cbcr_reg;
 	uintptr_t ena_vote;
 	int vote_bit;
 };

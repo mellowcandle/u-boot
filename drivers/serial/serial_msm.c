@@ -17,6 +17,7 @@
 #include <watchdog.h>
 #include <asm/io.h>
 #include <linux/compiler.h>
+int _clk_init_uart();
 
 /* Serial registers - this driver works in uartdm mode*/
 
@@ -146,6 +147,7 @@ static const struct dm_serial_ops msm_serial_ops = {
 
 static int msm_uart_clk_init(struct udevice *dev)
 {
+#if 0
 	uint clk_rate = fdtdec_get_uint(gd->fdt_blob, dev_of_offset(dev),
 					"clock-frequency", 115200);
 	uint clkd[2]; /* clk_id and clk_no */
@@ -176,6 +178,8 @@ static int msm_uart_clk_init(struct udevice *dev)
 	clk_free(&clk);
 	if (ret < 0)
 		return ret;
+#endif
+	_clk_init_uart();
 
 	return 0;
 }

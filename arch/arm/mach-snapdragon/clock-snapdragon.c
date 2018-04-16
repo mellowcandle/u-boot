@@ -33,12 +33,9 @@ void clk_enable_cbc(phys_addr_t cbcr)
 
 void clk_enable_gpll0(phys_addr_t base, const struct gpll0_ctrl *gpll0)
 {
-	if (readl(base + gpll0->status) & gpll0->status_bit)
-		return; /* clock already enabled */
-
 	setbits_le32(base + gpll0->ena_vote, gpll0->vote_bit);
 
-	while ((readl(base + gpll0->status) & gpll0->status_bit) == 0)
+	while (readl(base + gpll0->cbcr_reg) & CBCR_BRANCH_OFF_BIT)
 		;
 }
 
@@ -60,34 +57,34 @@ void clk_bcr_update(phys_addr_t apps_cmd_rgcr)
 
 #define CFG_DIVIDER_MASK 0x1F
 
+#define CFG_SRC_DIV_OFFSET      0
+#define CFG_SRC_DIV_MASK        (0x1F << CFG_SRC_DIV_OFFSET)
+
+#define CFG_SRC_SEL_OFFSET      8
+#define CFG_SRC_SEL_MASK        (0x3 << CFG_SRC_SEL_OFFSET)
+
+#define CFG_MODE_DUAL_EDGE      0x2
+
+#define CFG_MODE_OFFSET         12
+#define CFG_MODE_MASK           (0x3 << CFG_MODE_OFFSET)
+
 /* root set rate for clocks with half integer and MND divider */
 void clk_rcg_set_rate_mnd(phys_addr_t base, const struct bcr_regs *regs,
-			  int div, int m, int n, int source)
+			  int d, int m, int n, int source)
 {
 	u32 cfg;
-	/* M value for MND divider. */
-	u32 m_val = m;
-	/* NOT(N-M) value for MND divider. */
-	u32 n_val = ~((n) - (m)) * !!(n);
-	/* NOT 2D value for MND divider. */
-	u32 d_val = ~(n);
 
 	/* Program MND values */
-	writel(m_val, base + regs->M);
-	writel(n_val, base + regs->N);
-	writel(d_val, base + regs->D);
+	writel(m, base + regs->M);
+	writel(n, base + regs->N);
+	writel(d, base + regs->D);
 
 	/* setup src select and divider */
 	cfg  = readl(base + regs->cfg_rcgr);
-	cfg &= ~CFG_MASK;
+	cfg &= ~(CFG_SRC_SEL_MASK | CFG_SRC_DIV_MASK | CFG_MODE_MASK);
 	cfg |= source & CFG_CLK_SRC_MASK; /* Select clock source */
 
-	/* Set the divider; HW permits fraction dividers (+0.5), but
-	   for simplicity, we will support integers only */
-	if (div)
-		cfg |= (2 * div - 1) & CFG_DIVIDER_MASK;
-
-	if (n_val)
+	if (n)
 		cfg |= CFG_MODE_DUAL_EDGE;
 
 	writel(cfg, base + regs->cfg_rcgr); /* Write new clock configuration */
