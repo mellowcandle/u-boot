@@ -165,6 +165,29 @@ int android_image_get_second(const struct andr_img_hdr *hdr,
 	return 0;
 }
 
+#ifdef CONFIG_ARCH_SNAPDRAGON
+int android_image_get_dt(const struct andr_img_hdr *hdr,
+			      char **dt_data, ulong *dt_len)
+{
+	if (!hdr->dt_size) {
+		*dt_data = NULL;
+		*dt_len = 0;
+		return -1;
+	}
+
+	*dt_data = (char *)hdr;
+	*dt_data += hdr->page_size;
+	*dt_data += ALIGN(hdr->kernel_size, hdr->page_size);
+	*dt_data += ALIGN(hdr->ramdisk_size, hdr->page_size);
+	*dt_data += ALIGN(hdr->second_size, hdr->page_size);
+
+	printf("DT address is 0x%x\n",(unsigned int) *dt_data);
+
+	*dt_len = hdr->dt_size;
+	return 0;
+}
+#endif
+
 #if !defined(CONFIG_SPL_BUILD)
 /**
  * android_print_contents - prints out the contents of the Android format image
@@ -180,10 +203,11 @@ int android_image_get_second(const struct andr_img_hdr *hdr,
 void android_print_contents(const struct andr_img_hdr *hdr)
 {
 	const char * const p = IMAGE_INDENT_STRING;
+#ifndef CONFIG_ARCH_SNAPDRAGON
 	/* os_version = ver << 11 | lvl */
 	u32 os_ver = hdr->os_version >> 11;
 	u32 os_lvl = hdr->os_version & ((1U << 11) - 1);
-
+#endif
 	printf("%skernel size:      %x\n", p, hdr->kernel_size);
 	printf("%skernel address:   %x\n", p, hdr->kernel_addr);
 	printf("%sramdisk size:     %x\n", p, hdr->ramdisk_size);
@@ -192,12 +216,17 @@ void android_print_contents(const struct andr_img_hdr *hdr)
 	printf("%ssecond address:   %x\n", p, hdr->second_addr);
 	printf("%stags address:     %x\n", p, hdr->tags_addr);
 	printf("%spage size:        %x\n", p, hdr->page_size);
+#ifdef CONFIG_ARCH_SNAPDRAGON
+	printf("%sdt size:          %x\n", p, hdr->dt_size);
+#endif
 	/* ver = A << 14 | B << 7 | C         (7 bits for each of A, B, C)
 	 * lvl = ((Y - 2000) & 127) << 4 | M  (7 bits for Y, 4 bits for M) */
+#ifndef CONFIG_ARCH_SNAPDRAGON
 	printf("%sos_version:       %x (ver: %u.%u.%u, level: %u.%u)\n",
 	       p, hdr->os_version,
 	       (os_ver >> 7) & 0x7F, (os_ver >> 14) & 0x7F, os_ver & 0x7F,
 	       (os_lvl >> 4) + 2000, os_lvl & 0x0F);
+#endif
 	printf("%sname:             %s\n", p, hdr->name);
 	printf("%scmdline:          %s\n", p, hdr->cmdline);
 }

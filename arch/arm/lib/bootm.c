@@ -11,6 +11,7 @@
  *
  * SPDX-License-Identifier:	GPL-2.0+
  */
+#define DEBUG
 
 #include <common.h>
 #include <command.h>
@@ -35,6 +36,7 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
+void scm_elexec_call(uint32_t kernel_entry, uint32_t dtb_offset);
 static struct tag *params;
 
 static ulong get_sp(void)
@@ -397,7 +399,11 @@ static void boot_jump_linux(bootm_headers_t *images, int flag)
 							  0, machid, r2);
 		} else
 #endif
-			kernel_entry(0, machid, r2);
+#ifndef CONFIG_ARCH_SNAPDRAGON
+		kernel_entry(0, machid, r2);
+#else
+         scm_elexec_call(kernel_entry, images->ft_addr);
+#endif
 	}
 #endif
 }

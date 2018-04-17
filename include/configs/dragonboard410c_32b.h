@@ -1,18 +1,21 @@
 /*
- * Board configuration file for Dragonboard 410C
+ * Board configuration file for Dragonboard 410C 32bit
  *
- * (C) Copyright 2015 Mateusz Kulikowski <mateusz.kulikowski@gmail.com>
+ * (C) Copyright 2018 Ramon Fried <ramon.fried@linaro.org>
  *
  * SPDX-License-Identifier:	GPL-2.0+
  */
 
-#ifndef __CONFIGS_DRAGONBOARD410C_H
-#define __CONFIGS_DRAGONBOARD410C_H
+#ifndef __CONFIGS_DRAGONBOARD410C_32B_H
+#define __CONFIGS_DRAGONBOARD410C_32B_H
 
 #include <linux/sizes.h>
 #include <asm/arch/sysmap-apq8016.h>
 
 #define CONFIG_MISC_INIT_R /* To stop autoboot */
+
+#define TRACE() debug("+%s: %u\n", __PRETTY_FUNCTION__, __LINE__);
+
 #define CONFIG_CMD_IMI
 
 /* Physical Memory Map */
@@ -37,8 +40,9 @@
 /* Generic Timer Definitions */
 #define COUNTER_FREQUENCY		19000000
 
-#define CONFIG_SYS_LDSCRIPT "board/qualcomm/dragonboard410c/u-boot.lds"
+#define CONFIG_SYS_LDSCRIPT "board/qualcomm/dragonboard410c_32b/u-boot.lds"
 
+#define CONFIG_SYS_ARCH_TIMER
 /* Fixup - in init code we switch from device to host mode,
  * it has to be done after each HCD reset */
 #define CONFIG_EHCI_HCD_INIT_AFTER_RESET
@@ -65,7 +69,7 @@
 #define REFLASH(file, part) \
 "part start mmc 0 "#part" start && "\
 "part size mmc 0 "#part" size && "\
-"tftp $loadaddr 10.18.166.95:"#file" && " \
+"tftp $loadaddr 10.18.166.5:"#file" && " \
 "mmc write $loadaddr $start $size && "
 
 #define CONFIG_ENV_REFLASH \
@@ -89,9 +93,9 @@ REFLASH(dragonboard/u-boot.img, 8)\
 /* Environment */
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"reflash="CONFIG_ENV_REFLASH"\0"\
-	"fdt_high=0xffffffffffffffff\0" \
-	"reload=mmc dev 0 && usb start && "REFLASH(u-boot,7)"\0"\
 	"loadaddr=0x91000000\0" \
+	"reload=mmc dev 0 && usb start && "REFLASH(u-boot-signed.elf,7)"\0"\
+	"fast_boot=mmc dev 0 && part start mmc 0 8 start && part size mmc 0 8 size && mmc read $loadaddr $start $size && bootm\0" \
 	BOOTENV
 
 #define CONFIG_ENV_SIZE			0x2000

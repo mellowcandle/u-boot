@@ -1,7 +1,7 @@
 /*
- * Board init file for Dragonboard 410C
+ * Board init file for Dragonboard 410C 32bit
  *
- * (C) Copyright 2015 Mateusz Kulikowski <mateusz.kulikowski@gmail.com>
+ * (C) Copyright 2018 Ramon Fried <ramon.fried@linaro.org>
  *
  * SPDX-License-Identifier:	GPL-2.0+
  */
@@ -11,17 +11,44 @@
 #include <usb.h>
 #include <asm/gpio.h>
 #include <fdt_support.h>
+#include <power/pmic.h>
+#include <asm/io.h>
+#include <linux/arm-smccc.h>
+
+#define SCM_SVC_PWR                     0x9
+#define SCM_IO_DISABLE_PMIC_ARBITER     0x1
+
+typedef struct {
+    uint64_t el1_x0;
+    uint64_t el1_x1;
+    uint64_t el1_x2;
+    uint64_t el1_x3;
+    uint64_t el1_x4;
+    uint64_t el1_x5;
+    uint64_t el1_x6;
+    uint64_t el1_x7;
+    uint64_t el1_x8;
+    uint64_t el1_elr;
+} el1_system_param;
+
+#define SCM_CMD_MILESTONE_32_64 0x200010f
+#define SCM_CMD_ARGS 0x12
+
+void scm_elexec_call(uint32_t kernel_entry, uint32_t dtb_offset)
+{
+    static el1_system_param param = {0};
+    param.el1_x0 = dtb_offset;
+    param.el1_elr = kernel_entry;
+
+	arm_smccc_smc(SCM_CMD_MILESTONE_32_64, SCM_CMD_ARGS,
+					(unsigned long )&param, sizeof(el1_system_param),
+					0, 0, 0, 0, 0);
+
+    puts("Failed to jump to kernel\n");
+
+}
 
 DECLARE_GLOBAL_DATA_PTR;
-
-/* pointer to the device tree ammended by the firmware */
-extern void *fw_dtb;
-void was_relocated(void);
-
-void *board_fdt_blob_setup(void)
-{
-	return NULL;
-}
 
 int dram_init(void)
 {
@@ -180,7 +207,100 @@ int ft_board_setup(void *blob, bd_t *bd)
 	return 0;
 }
 
+#define RECOVERY_MODE     0x01
+#define FASTBOOT_MODE     0x02
+#define ALARM_BOOT        0x03
+#define PON_SOFT_RB_SPARE 0x88F
+#define PON_PSHOLD_WARM_RESET   0x1
+#define MPM2_MPM_PS_HOLD  0x004AB000
+#define PON_PS_HOLD_RESET_CTL2 0x85B
+#define PON_PS_HOLD_RESET_CTL 0x85A
+#define S2_RESET_EN_BIT  7
+int pm8x41_reset_configure(struct udevice *udev,uint8_t reset_type)
+{
+	uint8_t value;
+    /* disable PS_HOLD_RESET */
+	printf("in pm8x41_reset_configure 1\n");
+	value = 0;
+	if (pmic_write(udev, PON_PS_HOLD_RESET_CTL2, &value, 1))
+		goto error;
+
+    /* Delay needed for disable to kick in. */
+    udelay(300);
+	printf("in pm8x41_reset_configure 2\n");
+
+    /* configure reset type */
+	if (pmic_write(udev, PON_PS_HOLD_RESET_CTL, &reset_type, 1))
+		goto error;
+	printf("in pm8x41_reset_configure 3\n");
+
+    /* enable PS_HOLD_RESET */
+	value = BIT(S2_RESET_EN_BIT);
+	if (pmic_write(udev, PON_PS_HOLD_RESET_CTL2, &value, 1))
+		goto error;
+
+	return 0;
+
+error:
+	printf("PMIC read/write error\n");
+	return -1;
+}
+#define SCM_CLASS_REGISTER	(0x2 << 8)
+#define SCM_MASK_IRQS		BIT(5)
+#define SCM_ATOMIC(svc, cmd, n) (((((svc) << 10)|((cmd) & 0x3ff)) << 12) | \
+				SCM_CLASS_REGISTER | \
+				SCM_MASK_IRQS | \
+				(n & 0xf))
+
+int reset_board(struct udevice *udev, int reason)
+{
+	int ret;
+	uint8_t value;
+
+	printf("in reset board\n");
+
+	ret = pmic_read(udev, PON_SOFT_RB_SPARE, &value, 1);
+	if (ret) {
+		printf("pmic_read failed\n");
+		return -1;
+	}
+	printf("in reset board 2\n");
+	value |= reason << 2;
+	ret = pmic_write(udev, PON_SOFT_RB_SPARE, &value, 1);
+	if (ret) {
+		printf("pmic_write failed\n");
+		return -1;
+	}
+	printf("in reset board 3\n");
+	if (pm8x41_reset_configure(udev, reason))
+		goto error;
+
+	struct arm_smccc_res res;
+
+	arm_smccc_smc(SCM_ATOMIC(SCM_SVC_PWR, SCM_IO_DISABLE_PMIC_ARBITER, 1), 0, 0, 0, 0, 0, 0, 0, &res);
+
+    /* Drop PS_HOLD for MSM */
+    writel(0x00, MPM2_MPM_PS_HOLD);
+	printf("in reset board 3\n");
+
+    mdelay(5000);
+
+error:
+    printf("Rebooting failed\n");
+}
+
 void reset_cpu(ulong addr)
 {
-	psci_system_reset();
+	int ret;
+	struct udevice *pmic;
+	printf("in reset_cpu\n");
+
+	ret = pmic_get("pm8916@0", &pmic);
+	if (ret < 0) {
+		printf("Failed to find PMIC node. Check device tree\n");
+		return;
+	}
+
+	reset_board(pmic, RECOVERY_MODE);
+
 }

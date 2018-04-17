@@ -8,6 +8,7 @@
  * SPDX-License-Identifier:	BSD-3-Clause
  */
 
+#define DEBUG
 #include <common.h>
 #include <clk-uclass.h>
 #include <dm.h>
@@ -19,6 +20,8 @@
 /* CBCR register fields */
 #define CBCR_BRANCH_ENABLE_BIT  BIT(0)
 #define CBCR_BRANCH_OFF_BIT     BIT(31)
+
+DECLARE_GLOBAL_DATA_PTR;
 
 extern ulong msm_set_rate(struct clk *clk, ulong rate);
 

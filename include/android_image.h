@@ -34,6 +34,9 @@ struct andr_img_hdr {
 
 	u32 tags_addr;		/* physical addr for kernel tags */
 	u32 page_size;		/* flash page size we assume */
+#ifdef CONFIG_ARCH_SNAPDRAGON
+	u32 dt_size;
+#endif
 	u32 unused;		/* reserved for future expansion: MUST be 0 */
 
 	/* operating system version and security patch level; for
@@ -41,8 +44,9 @@ struct andr_img_hdr {
 	 * ver = A << 14 | B << 7 | C         (7 bits for each of A, B, C)
 	 * lvl = ((Y - 2000) & 127) << 4 | M  (7 bits for Y, 4 bits for M)
 	 * os_version = ver << 11 | lvl */
+#ifndef CONFIG_ARCH_SNAPDRAGON
 	u32 os_version;
-
+#endif
 	char name[ANDR_BOOT_NAME_SIZE]; /* asciiz product name */
 
 	char cmdline[ANDR_BOOT_ARGS_SIZE];

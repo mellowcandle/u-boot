@@ -34,6 +34,7 @@ struct bcr_regs {
 
 struct msm_clk_priv {
 	phys_addr_t base;
+	int reloc;
 };
 
 void clk_enable_gpll0(phys_addr_t base, const struct pll_vote_clk *gpll0);
@@ -41,5 +42,6 @@ void clk_bcr_update(phys_addr_t apps_cmd_rgcr);
 void clk_enable_cbc(phys_addr_t cbcr);
 void clk_rcg_set_rate_mnd(phys_addr_t base, const struct bcr_regs *regs,
 			  int div, int m, int n, int source);
+void clk_enable_vote_clk(phys_addr_t base, const struct vote_clk *vclk);
 
 #endif

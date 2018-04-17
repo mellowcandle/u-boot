@@ -81,6 +81,7 @@ static int clk_init_uart(struct msm_clk_priv *priv)
 	/* Enable AHB clock */
 	clk_enable_vote_clk(priv->base, &gcc_blsp1_ahb_clk);
 
+	clk_enable_gpll0(priv->base, &gpll0_vote_clk);
 	/* 7372800 uart block clock @ GPLL0 */
 	clk_rcg_set_rate_mnd(priv->base, &uart2_regs, 1, 144, 15625,
 			     CFG_CLK_SRC_GPLL0);

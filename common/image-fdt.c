@@ -9,6 +9,8 @@
  * SPDX-License-Identifier:	GPL-2.0+
  */
 
+#define DEBUG
+
 #include <common.h>
 #include <fdt_support.h>
 #include <errno.h>
@@ -20,6 +22,8 @@
 #ifndef CONFIG_SYS_FDT_PAD
 #define CONFIG_SYS_FDT_PAD 0x3000
 #endif
+
+#define TRACE() debug("+%s: %u\n", __PRETTY_FUNCTION__, __LINE__);
 
 /* adding a ramdisk needs 0x44 bytes in version 2008.10 */
 #define FDT_RAMDISK_OVERHEAD	0x80
@@ -416,6 +420,23 @@ int boot_get_fdt(int flag, int argc, char * const argv[], uint8_t arch,
 			debug("## No Flattened Device Tree\n");
 			goto no_fdt;
 		}
+#ifdef CONFIG_ARCH_SNAPDRAGON
+	} else if (images->ft_len) {
+		printf("## Flattened Device Tree from Android Image at %08lX\n",
+		       (ulong)images->ft_addr);
+		fdt_blob = images->ft_addr;
+		printf("   Booting using the fdt at 0x%p\n", fdt_blob);
+
+		if (fdt_check_header(fdt_blob) != 0) {
+			fdt_error("image is not a fdt");
+			goto error;
+		}
+
+		if (fdt_totalsize(fdt_blob) != images->ft_len) {
+			fdt_error("fdt size != image size");
+			goto error;
+		}
+#endif
 	} else {
 		debug("## No Flattened Device Tree\n");
 		goto no_fdt;

@@ -947,6 +947,9 @@ int boot_get_ramdisk(int argc, char * const argv[], bootm_headers_t *images,
 	*rd_start = 0;
 	*rd_end = 0;
 
+	printf("0x%x 0x%u\n", (ulong) images->ft_addr, images->ft_len);
+
+
 #ifdef CONFIG_ANDROID_BOOT_IMAGE
 	/*
 	 * Look for an Android boot image.

@@ -17,6 +17,7 @@
 #include <watchdog.h>
 #include <asm/io.h>
 #include <linux/compiler.h>
+#include <dm/pinctrl.h>
 
 /* Serial registers - this driver works in uartdm mode*/
 
@@ -26,7 +27,10 @@
 #define UARTDM_RXFS             0x50 /* RX channel status register */
 #define UARTDM_RXFS_BUF_SHIFT   0x7  /* Number of bytes in the packing buffer */
 #define UARTDM_RXFS_BUF_MASK    0x7
+#define UARTDM_MR1				 0x00
+#define UARTDM_MR2				 0x04
 
+#define UARTDM_CSR				 0xA0
 #define UARTDM_SR                0xA4 /* Status register */
 #define UARTDM_SR_RX_READY       (1 << 0) /* Word is the receiver FIFO */
 #define UARTDM_SR_TX_EMPTY       (1 << 3) /* Transmitter underrun */
@@ -46,7 +50,10 @@
 #define UARTDM_TF               0x100 /* UART Transmit FIFO register */
 #define UARTDM_RF               0x140 /* UART Receive FIFO register */
 
-
+#define UART_DM_CLK_RX_TX_BIT_RATE 0xCC
+#define MSM_BOOT_UART_DM_8_N_1_MODE 0x34
+#define MSM_BOOT_UART_DM_CMD_RESET_RX 0x10
+#define MSM_BOOT_UART_DM_CMD_RESET_TX 0x20
 DECLARE_GLOBAL_DATA_PTR;
 
 struct msm_serial_data {
@@ -180,6 +187,67 @@ static int msm_uart_clk_init(struct udevice *dev)
 	return 0;
 }
 
+#define GPIO_INPUT     0x0000
+#define GPIO_OUTPUT    0x0001
+#define GPIO_LEVEL     0x0000
+#define GPIO_EDGE      0x0010
+#define GPIO_RISING    0x0020
+#define GPIO_FALLING   0x0040
+#define GPIO_HIGH      0x0020
+#define GPIO_LOW       0x0040
+#define GPIO_PULLUP    0x0100
+#define GPIO_INPUT     0x0000
+#define GPIO_OUTPUT    0x0001
+#define GPIO_LEVEL     0x0000
+#define GPIO_EDGE      0x0010
+#define GPIO_RISING    0x0020
+#define GPIO_FALLING   0x0040
+#define GPIO_HIGH      0x0020
+#define GPIO_LOW       0x0040
+#define GPIO_PULLUP    0x0100
+#define GPIO_PULLDOWN  0x0200
+#define GPIO_NO_PULL    0
+#define GPIO_ENABLE     0
+#define GPIO_DISABLE    1
+#define GPIO_8MA        3
+#define TLMM_BASE_ADDR              0x1000000
+#define GPIO_CONFIG_ADDR(x)         (TLMM_BASE_ADDR + (x)*0x1000)
+
+void gpio_tlmm_config(uint32_t gpio, uint8_t func,
+                       uint8_t dir, uint8_t pull,
+                       uint8_t drvstr, uint32_t enable)
+{
+       uint32_t val = 0;
+       val |= pull;
+       val |= func << 2;
+       val |= drvstr << 6;
+       val |= enable << 9;
+       writel(val, (uint32_t *)GPIO_CONFIG_ADDR(gpio));
+       return;
+}
+
+
+/* Configure gpio for blsp uart 2 */
+void gpio_config_uart_dm()
+{
+       /* configure rx gpio */
+       gpio_tlmm_config(5, 2, GPIO_INPUT, GPIO_NO_PULL,
+                               GPIO_8MA, GPIO_DISABLE);
+
+       /* configure tx gpio */
+       gpio_tlmm_config(4, 2, GPIO_OUTPUT, GPIO_NO_PULL,
+                               GPIO_8MA, GPIO_DISABLE);
+}
+
+
+static void uart_dm_init(struct msm_serial_data *priv)
+{
+	writel(UART_DM_CLK_RX_TX_BIT_RATE, priv->base + UARTDM_CSR);
+	writel(0x0, priv->base + UARTDM_MR1);
+	writel(MSM_BOOT_UART_DM_8_N_1_MODE, priv->base + UARTDM_MR2);
+	writel(MSM_BOOT_UART_DM_CMD_RESET_RX, priv->base + UARTDM_CR);
+	writel(MSM_BOOT_UART_DM_CMD_RESET_TX, priv->base + UARTDM_CR);
+}
 static int msm_serial_probe(struct udevice *dev)
 {
 	struct msm_serial_data *priv = dev_get_priv(dev);
@@ -187,13 +255,25 @@ static int msm_serial_probe(struct udevice *dev)
 	if (msm_uart_clk_init(dev))
 		return -EINVAL;
 
+#if 0
+	if (pinctrl_select_state(dev, "default"))
+	{
+		debug("Failed muxing uart pins\n");
+		return -EINVAL;
+	}
+#endif
+	gpio_config_uart_dm();
+
+	uart_dm_init(priv);
+
+#if 1
 	if (readl(priv->base + UARTDM_SR) & UARTDM_SR_UART_OVERRUN)
 		writel(UARTDM_CR_CMD_RESET_ERR, priv->base + UARTDM_CR);
 
 	writel(0, priv->base + UARTDM_IMR);
 	writel(UARTDM_CR_CMD_STALE_EVENT_DISABLE, priv->base + UARTDM_CR);
 	msm_serial_fetch(dev);
-
+#endif
 	return 0;
 }
 

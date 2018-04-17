@@ -1,31 +1,31 @@
 /*
  * Qualcomm APQ8016 based Dragonboard 410C board device tree source
  *
- * (C) Copyright 2015 Mateusz Kulikowski <mateusz.kulikowski@gmail.com>
+ * (C) Copyright 2018 Ramon Fried <ramon.fried@linaro.org>
  *
  * SPDX-License-Identifier:	GPL-2.0+
  */
 
 /dts-v1/;
 
-#include "skeleton64.dtsi"
-
+#include <dt-bindings/gpio/gpio.h>
+#include "skeleton.dtsi"
 / {
-	model = "Nico wants to be sure";
+	model = "Qualcomm Technologies, Inc. Dragonboard 410c";
 	compatible = "qcom,dragonboard", "qcom,apq8016-sbc";
 	qcom,msm-id = <0xce 0x0 0xf8 0x0 0xf9 0x0 0xfa 0x0 0xf7 0x0>;
 	qcom,board-id = <0x10018 0x0>;
-	#address-cells = <0x2>;
-	#size-cells = <0x2>;
+	#address-cells = <0x1>;
+	#size-cells = <0x1>;
 
 	memory {
 		device_type = "memory";
-		reg = <0 0x80000000 0 0x3da00000>;
+		reg = <0x80000000 0x3da00000>;
 	};
 
 	reserved-memory {
-		#address-cells = <2>;
-		#size-cells = <2>;
+		#address-cells = <1>;
+		#size-cells = <1>;
 		ranges;
 	};
 
@@ -36,8 +36,19 @@
 	soc {
 		#address-cells = <0x1>;
 		#size-cells = <0x1>;
-		ranges = <0x0 0x0 0x0 0xffffffff>;
+		ranges;
 		compatible = "simple-bus";
+
+		pinctrl: qcom,tlmm@1000000 {
+			compatible = "qcom,tlmm-apq8016";
+			reg = <0x1000000 0x400000>;
+
+			blsp_uart: uart {
+				function = <2>;
+				pins = <4 5>;
+				drive-strength = <8>;
+			};
+		};
 
 		clkc: qcom,gcc@1800000 {
 			compatible = "qcom,gcc-apq8016";
@@ -50,6 +61,8 @@
 			compatible = "qcom,msm-uartdm-v1.4";
 			reg = <0x78b0000 0x200>;
 			clock = <&clkc 4>;
+			pinctrl-names = "default";
+			pinctrl-0 = <&blsp_uart>;
 		};
 
 		soc_gpios: pinctrl@1000000 {
@@ -59,7 +72,6 @@
 			gpio-count = <122>;
 			gpio-bank-name="soc";
 			#gpio-cells = <1>;
-			status = "disabled";
 		};
 
 		ehci@78d9000 {
@@ -135,22 +147,23 @@
 		compatible = "gpio-leds";
 		user1 {
 			label = "green:user1";
-			gpios = <&soc_gpios 21 0>;
+			gpios = <&soc_gpios 21 GPIO_ACTIVE_HIGH>;
 		};
 
 		user2 {
 			label = "green:user2";
-			gpios = <&soc_gpios 120 0>;
+			gpios = <&soc_gpios 120 GPIO_ACTIVE_HIGH>;
 		};
 
 		user3 {
 			label = "green:user3";
-			gpios = <&pm8916_gpios 0 0>;
+			gpios = <&pm8916_gpios 0 GPIO_ACTIVE_HIGH>;
 		};
 
 		user4 {
 			label = "green:user4";
-			gpios = <&pm8916_gpios 1 0>;
+			gpios = <&pm8916_gpios 1 GPIO_ACTIVE_HIGH>;
+
 		};
 	};
 };
