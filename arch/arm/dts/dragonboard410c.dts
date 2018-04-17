@@ -49,7 +49,6 @@
 		serial@78b0000 {
 			compatible = "qcom,msm-uartdm-v1.4";
 			reg = <0x78b0000 0x200>;
-			u-boot,dm-pre-reloc;
 			clock = <&clkc 4>;
 		};
 
