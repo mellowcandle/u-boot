@@ -291,6 +291,25 @@ error:
 
 void reset_cpu(ulong addr)
 {
+	printf("in reset_cpu\n");
+
+   	struct udevice *pon;
+	struct gpio_desc resin;
+	int node, ret;
+
+	ret = uclass_get_device_by_name(UCLASS_SERIAL, "serial@78b0000", &pon);
+	if (ret < 0) {
+		printf("Failed to find PMIC pon node. Check device tree\n");
+		return 0;
+	}
+
+ if (pinctrl_select_state(pon, "blsp1_uart"))
+    {
+        printf("Failed muxing uart pins\n");
+        return -EINVAL;
+    }
+
+#if 0
 	int ret;
 	struct udevice *pmic;
 	printf("in reset_cpu\n");
@@ -302,5 +321,7 @@ void reset_cpu(ulong addr)
 	}
 
 	reset_board(pmic, RECOVERY_MODE);
+
+#endif
 
 }

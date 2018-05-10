@@ -18,6 +18,7 @@ DECLARE_GLOBAL_DATA_PTR;
 
 int pinctrl_decode_pin_config(const void *blob, int node)
 {
+	printf("entered %s\n", __PRETTY_FUNCTION__);
 	int flags = 0;
 
 	if (fdtdec_get_bool(blob, node, "bias-pull-up"))
@@ -37,6 +38,7 @@ int pinctrl_decode_pin_config(const void *blob, int node)
  */
 static int pinctrl_config_one(struct udevice *config)
 {
+	printf("entered %s\n", __PRETTY_FUNCTION__);
 	struct udevice *pctldev;
 	const struct pinctrl_ops *ops;
 
@@ -64,6 +66,7 @@ static int pinctrl_config_one(struct udevice *config)
  */
 static int pinctrl_select_state_full(struct udevice *dev, const char *statename)
 {
+	printf("entered %s\n", __PRETTY_FUNCTION__);
 	char propname[32]; /* long enough */
 	const fdt32_t *list;
 	uint32_t phandle;
@@ -112,6 +115,7 @@ static int pinctrl_select_state_full(struct udevice *dev, const char *statename)
  */
 static int pinconfig_post_bind(struct udevice *dev)
 {
+	printf("entered %s\n", __PRETTY_FUNCTION__);
 	bool pre_reloc_only = !(gd->flags & GD_FLG_RELOC);
 	const char *name;
 	ofnode node;
@@ -158,11 +162,13 @@ U_BOOT_DRIVER(pinconfig_generic) = {
 #else
 static int pinctrl_select_state_full(struct udevice *dev, const char *statename)
 {
+	printf("entered %s\n", __PRETTY_FUNCTION__);
 	return -ENODEV;
 }
 
 static int pinconfig_post_bind(struct udevice *dev)
 {
+	printf("entered %s\n", __PRETTY_FUNCTION__);
 	return 0;
 }
 #endif
@@ -175,6 +181,7 @@ static int pinconfig_post_bind(struct udevice *dev)
  */
 static int pinctrl_select_state_simple(struct udevice *dev)
 {
+	printf("entered %s\n", __PRETTY_FUNCTION__);
 	struct udevice *pctldev;
 	struct pinctrl_ops *ops;
 	int ret;
@@ -199,6 +206,7 @@ static int pinctrl_select_state_simple(struct udevice *dev)
 
 int pinctrl_select_state(struct udevice *dev, const char *statename)
 {
+	printf("entered %s\n", __PRETTY_FUNCTION__);
 	/*
 	 * Try full-implemented pinctrl first.
 	 * If it fails or is not implemented, try simple one.
@@ -211,6 +219,7 @@ int pinctrl_select_state(struct udevice *dev, const char *statename)
 
 int pinctrl_request(struct udevice *dev, int func, int flags)
 {
+	printf("entered %s\n", __PRETTY_FUNCTION__);
 	struct pinctrl_ops *ops = pinctrl_get_ops(dev);
 
 	if (!ops->request)
@@ -221,11 +230,13 @@ int pinctrl_request(struct udevice *dev, int func, int flags)
 
 int pinctrl_request_noflags(struct udevice *dev, int func)
 {
+	printf("entered %s\n", __PRETTY_FUNCTION__);
 	return pinctrl_request(dev, func, 0);
 }
 
 int pinctrl_get_periph_id(struct udevice *dev, struct udevice *periph)
 {
+	printf("entered %s\n", __PRETTY_FUNCTION__);
 	struct pinctrl_ops *ops = pinctrl_get_ops(dev);
 
 	if (!ops->get_periph_id)
@@ -236,6 +247,7 @@ int pinctrl_get_periph_id(struct udevice *dev, struct udevice *periph)
 
 int pinctrl_get_gpio_mux(struct udevice *dev, int banknum, int index)
 {
+	printf("entered %s\n", __PRETTY_FUNCTION__);
 	struct pinctrl_ops *ops = pinctrl_get_ops(dev);
 
 	if (!ops->get_gpio_mux)
@@ -253,6 +265,7 @@ int pinctrl_get_gpio_mux(struct udevice *dev, int banknum, int index)
  */
 static int pinctrl_post_bind(struct udevice *dev)
 {
+	printf("entered %s\n", __PRETTY_FUNCTION__);
 	const struct pinctrl_ops *ops = pinctrl_get_ops(dev);
 
 	if (!ops) {

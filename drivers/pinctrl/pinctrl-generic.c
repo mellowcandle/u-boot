@@ -20,6 +20,7 @@ DECLARE_GLOBAL_DATA_PTR;
  */
 static int pinctrl_pin_name_to_selector(struct udevice *dev, const char *pin)
 {
+	printf("+%s\n", __PRETTY_FUNCTION__);
 	const struct pinctrl_ops *ops = pinctrl_get_ops(dev);
 	unsigned npins, selector;
 
@@ -51,6 +52,7 @@ static int pinctrl_pin_name_to_selector(struct udevice *dev, const char *pin)
 static int pinctrl_group_name_to_selector(struct udevice *dev,
 					  const char *group)
 {
+	printf("+%s\n", __PRETTY_FUNCTION__);
 	const struct pinctrl_ops *ops = pinctrl_get_ops(dev);
 	unsigned ngroups, selector;
 
@@ -83,6 +85,7 @@ static int pinctrl_group_name_to_selector(struct udevice *dev,
 static int pinmux_func_name_to_selector(struct udevice *dev,
 					const char *function)
 {
+	printf("+%s\n", __PRETTY_FUNCTION__);
 	const struct pinctrl_ops *ops = pinctrl_get_ops(dev);
 	unsigned nfuncs, selector = 0;
 
@@ -117,6 +120,7 @@ static int pinmux_func_name_to_selector(struct udevice *dev,
 static int pinmux_enable_setting(struct udevice *dev, bool is_group,
 				 unsigned selector, unsigned func_selector)
 {
+	printf("+%s\n", __PRETTY_FUNCTION__);
 	const struct pinctrl_ops *ops = pinctrl_get_ops(dev);
 
 	if (is_group) {
@@ -138,12 +142,14 @@ static int pinmux_enable_setting(struct udevice *dev, bool is_group,
 static int pinmux_func_name_to_selector(struct udevice *dev,
 					const char *function)
 {
+	printf("+%s\n", __PRETTY_FUNCTION__);
 	return 0;
 }
 
 static int pinmux_enable_setting(struct udevice *dev, bool is_group,
 				 unsigned selector, unsigned func_selector)
 {
+	printf("+%s\n", __PRETTY_FUNCTION__);
 	return 0;
 }
 #endif
@@ -160,6 +166,7 @@ static int pinmux_enable_setting(struct udevice *dev, bool is_group,
 static int pinconf_prop_name_to_param(struct udevice *dev,
 				      const char *property, u32 *default_value)
 {
+	printf("+%s\n", __PRETTY_FUNCTION__);
 	const struct pinctrl_ops *ops = pinctrl_get_ops(dev);
 	const struct pinconf_param *p, *end;
 
@@ -197,6 +204,7 @@ static int pinconf_enable_setting(struct udevice *dev, bool is_group,
 				  u32 argument)
 {
 	const struct pinctrl_ops *ops = pinctrl_get_ops(dev);
+	printf("+%s\n", __PRETTY_FUNCTION__);
 
 	if (is_group) {
 		if (!ops->pinconf_group_set) {
@@ -218,6 +226,7 @@ static int pinconf_enable_setting(struct udevice *dev, bool is_group,
 static int pinconf_prop_name_to_param(struct udevice *dev,
 				      const char *property, u32 *default_value)
 {
+	printf("+%s\n", __PRETTY_FUNCTION__);
 	return -ENOSYS;
 }
 
@@ -225,6 +234,7 @@ static int pinconf_enable_setting(struct udevice *dev, bool is_group,
 				  unsigned selector, unsigned param,
 				  u32 argument)
 {
+	printf("+%s\n", __PRETTY_FUNCTION__);
 	return 0;
 }
 #endif
@@ -244,6 +254,7 @@ static int pinctrl_generic_set_state_one(struct udevice *dev,
 					 struct udevice *config,
 					 bool is_group, unsigned selector)
 {
+	printf("+%s\n", __PRETTY_FUNCTION__);
 	const void *fdt = gd->fdt_blob;
 	int node_offset = dev_of_offset(config);
 	const char *propname;
@@ -299,6 +310,7 @@ static int pinctrl_generic_set_state_one(struct udevice *dev,
 static int pinctrl_generic_set_state_subnode(struct udevice *dev,
 					     struct udevice *config)
 {
+	printf("+%s\n", __PRETTY_FUNCTION__);
 	const void *fdt = gd->fdt_blob;
 	int node = dev_of_offset(config);
 	const char *subnode_target_type = "pins";
@@ -342,6 +354,7 @@ static int pinctrl_generic_set_state_subnode(struct udevice *dev,
 
 int pinctrl_generic_set_state(struct udevice *dev, struct udevice *config)
 {
+	printf("+%s\n", __PRETTY_FUNCTION__);
 	struct udevice *child;
 	int ret;
 

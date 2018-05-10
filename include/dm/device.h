@@ -932,7 +932,7 @@ static inline void devm_kfree(struct udevice *dev, void *ptr)
 
 #ifdef DEBUG
 #define dev_dbg(dev, fmt, ...) \
-	__dev_printk(7, dev, fmt, ##__VA_ARGS__)
+	__dev_printk(1, dev, fmt, ##__VA_ARGS__)
 #else
 #define dev_dbg(dev, fmt, ...)					\
 ({								\

@@ -44,12 +44,11 @@
 			reg = <0x1000000 0x400000>;
 
 			blsp_uart: uart {
-				function = <2>;
-				pins = <4 5>;
-				drive-strength = <8>;
+				function = "blsp1_uart";
+				pins = "GPIO_4", "GPIO_5";
+				drive-strength = <3>;
 			};
 		};
-
 		clkc: qcom,gcc@1800000 {
 			compatible = "qcom,gcc-apq8016";
 			reg = <0x1800000 0x80000>;
@@ -61,7 +60,7 @@
 			compatible = "qcom,msm-uartdm-v1.4";
 			reg = <0x78b0000 0x200>;
 			clock = <&clkc 4>;
-			pinctrl-names = "default";
+			pinctrl-names = "blsp1_uart";
 			pinctrl-0 = <&blsp_uart>;
 		};
 
