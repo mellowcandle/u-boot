@@ -14,6 +14,8 @@ choice
 
 config TARGET_DRAGONBOARD410C
 	bool "96Boards Dragonboard 410C"
+	select ARM64
+	select OF_SEPARATE
 	help
 	  Support for 96Boards Dragonboard 410C. This board complies with
 	  96Board Open Platform Specifications. Features:
@@ -24,9 +26,25 @@ config TARGET_DRAGONBOARD410C
 	  - 2x Host, 1x Device USB port
 	  - HDMI
 	  - 20-pin low speed and 40-pin high speed expanders, 4 LED, 3 buttons
-
+config TARGET_DRAGONBOARD410C_32B
+	bool "96Boards Dragonboard 410C 32Bit"
+	select CPU_V7A
+	select SYS_CACHE_SHIFT_6
+	select OF_EMBED
+	help
+	  Support for 96Boards Dragonboard 410C 32bit. This board complies with
+	  96Board Open Platform Specifications. Features:
+	  - Qualcomm Snapdragon 410C SoC - APQ8016 (4xCortex A53, Adreno 306)
+	  - 1GiB RAM
+	  - 8GiB eMMC, uSD slot
+	  - WiFi, Bluetooth and GPS module
+	  - 2x Host, 1x Device USB port
+	  - HDMI
+	  - 20-pin low speed and 40-pin high speed expanders, 4 LED, 3 buttons
 config TARGET_DRAGONBOARD820C
 	bool "96Boards Dragonboard 820C"
+	select ARM64
+	select OF_SEPARATE
 	help
 	  Support for 96Boards Dragonboard 820C. This board complies with
 	  96Board Open Platform Specifications. Features:
@@ -37,6 +55,7 @@ config TARGET_DRAGONBOARD820C
 endchoice
 
 source "board/qualcomm/dragonboard410c/Kconfig"
+source "board/qualcomm/dragonboard410c_32b/Kconfig"
 source "board/qualcomm/dragonboard820c/Kconfig"
 
 endif
