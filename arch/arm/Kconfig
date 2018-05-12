@@ -723,13 +723,11 @@ config TARGET_S32V234EVB
 
 config ARCH_SNAPDRAGON
 	bool "Qualcomm Snapdragon SoCs"
-	select ARM64
 	select DM
 	select DM_GPIO
 	select DM_SERIAL
 	select SPMI
 	select OF_CONTROL
-	select OF_SEPARATE
 
 config ARCH_SOCFPGA
 	bool "Altera SOCFPGA family"

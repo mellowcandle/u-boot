@@ -1263,7 +1263,8 @@ int fit_image_check_arch(const void *fit, int noffset, uint8_t arch)
 	return (arch == image_arch) ||
 		(arch == IH_ARCH_I386 && image_arch == IH_ARCH_X86_64) ||
 		(arch == IH_ARCH_ARM64 && image_arch == IH_ARCH_ARM &&
-		 aarch32_support);
+		 aarch32_support) ||
+		(arch == IH_ARCH_ARM && image_arch == IH_ARCH_ARM64);
 }
 
 /**

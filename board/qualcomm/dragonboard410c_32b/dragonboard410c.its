@@ -1,0 +1,47 @@
+/*
+ * Dragonboard410c Image with Linux kernel & single DTB
+ * Copyright 2018 Ramon Fried <ramon.fried@gmail.com>
+ */
+
+/dts-v1/;
+
+/ {
+	description = "Dragonboard410c Image with Linux kernel & Single DTB";
+	#address-cells = <2>;
+
+	images {
+		kernel {
+			description = "Linux kernel";
+			data = /incbin/("./Image.gz");
+			type = "kernel";
+			arch = "arm64";
+			os = "linux";
+			compression = "gzip";
+			load = <0x80080000>;
+			entry = <0x80080000>;
+			hash-1 {
+				algo = "crc32";
+			};
+		};
+		fdt-1 {
+			description = "Flattened Device Tree blob";
+			data = /incbin/("./apq8016-sbc.dtb");
+			type = "flat_dt";
+			arch = "arm64";
+			load = <0x84000000>;
+			compression = "none";
+			hash-1 {
+				algo = "crc32";
+			};
+		};
+	};
+
+	configurations {
+		default = "conf-1";
+		conf-1 {
+			description = "Boot Linux kernel with FDT blob";
+			kernel = "kernel";
+			fdt = "fdt-1";
+		};
+	};
+};
