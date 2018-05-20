@@ -91,6 +91,12 @@ config USB_GADGET_DWC2_OTG_PHY_BUS_WIDTH_8
 
 endif # USB_GADGET_DWC2_OTG
 
+config USB_GADGET_MSM
+	bool "Qualcomm Snapdragon HS OTG controller (gadget mode)"
+	help
+	  Say Y here to enable device controller functionality of the
+	  Snapdragon platforms.
+
 config CI_UDC
 	bool "ChipIdea device controller"
 	select USB_GADGET_DUALSPEED
