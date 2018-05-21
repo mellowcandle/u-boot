@@ -380,17 +380,22 @@ struct usb_device *usb_get_dev_index(struct udevice *bus, int index)
 
 int usb_setup_ehci_gadget(struct ehci_ctrl **ctlrp)
 {
+	TRACE();
 	struct usb_platdata *plat;
 	struct udevice *dev;
 	int ret;
 
 	/* Find the old device and remove it */
 	ret = uclass_find_device_by_seq(UCLASS_USB, 0, true, &dev);
-	if (ret)
-		return ret;
-	ret = device_remove(dev, DM_REMOVE_NORMAL);
-	if (ret)
-		return ret;
+	if (ret) {
+		ret = uclass_find_device(UCLASS_USB, 0, &dev);
+		if (ret)
+			return ret;
+	} else {
+		ret = device_remove(dev, DM_REMOVE_NORMAL);
+		if (ret)
+			return ret;
+	}
 
 	plat = dev_get_platdata(dev);
 	plat->init_type = USB_INIT_DEVICE;
