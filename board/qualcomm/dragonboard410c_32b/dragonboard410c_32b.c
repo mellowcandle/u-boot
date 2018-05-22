@@ -68,13 +68,11 @@ int dram_init_banksize(void)
 int board_usb_init(int index, enum usb_init_type init)
 {
 	TRACE();
-	if (init != USB_INIT_HOST)
-		return 0;
 
 	static struct udevice *pmic_gpio;
 	static struct gpio_desc hub_reset, usb_sel;
 	int ret = 0, node;
-
+	int val;
 	if (!pmic_gpio) {
 		ret = uclass_get_device_by_name(UCLASS_GPIO,
 						"pm8916_gpios@c000",
@@ -117,11 +115,15 @@ int board_usb_init(int index, enum usb_init_type init)
 			return ret;
 		}
 	}
-
+	printf("Before setting\n");
+	val = dm_gpio_get_value(&hub_reset);
+	printf("hub reset is: %d\n", val);
+	val = dm_gpio_get_value(&usb_sel);
+	printf("usb select  is: %d\n", val);
 	if (init == USB_INIT_HOST) {
 		/* Start USB Hub */
 		dm_gpio_set_dir_flags(&hub_reset,
-				      GPIOD_IS_OUT | GPIOD_IS_OUT_ACTIVE);
+				      GPIOD_IS_OUT);
 		mdelay(100);
 		/* Switch usb to host connectors */
 		dm_gpio_set_dir_flags(&usb_sel,
@@ -129,10 +131,15 @@ int board_usb_init(int index, enum usb_init_type init)
 		mdelay(100);
 	} else { /* Device */
 		/* Disable hub */
-		dm_gpio_set_dir_flags(&hub_reset, GPIOD_IS_OUT);
+		dm_gpio_set_dir_flags(&hub_reset, GPIOD_IS_OUT | GPIOD_IS_OUT_ACTIVE);
 		/* Switch back to device connector */
 		dm_gpio_set_dir_flags(&usb_sel, GPIOD_IS_OUT);
 	}
+	printf("After setting\n");
+	val = dm_gpio_get_value(&hub_reset);
+	printf("hub reset is: %d\n", val);
+	val = dm_gpio_get_value(&usb_sel);
+	printf("usb select  is: %d\n", val);
 
 	return 0;
 }

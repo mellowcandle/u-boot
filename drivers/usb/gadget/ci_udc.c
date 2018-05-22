@@ -25,6 +25,7 @@
 #include "../host/ehci.h"
 #include "ci_udc.h"
 
+#include <iotrace.h>
 /*
  * Check if the system has too long cachelines. If the cachelines are
  * longer then 128b, the driver will not be able flush/invalidate data
@@ -817,6 +818,7 @@ void udc_irq(void)
 	unsigned n = readl(&udc->usbsts);
 	writel(n, &udc->usbsts);
 	int bit, i, num, in;
+	iotrace_set_enabled(0);
 
 	n &= (STS_SLI | STS_URI | STS_PCI | STS_UI | STS_UEI);
 	if (n == 0)
@@ -909,6 +911,16 @@ static int ci_pullup(struct usb_gadget *gadget, int is_on)
 	TRACE();
 	struct ci_udc *udc = (struct ci_udc *)controller.ctrl->hcor;
 	if (is_on) {
+		writel(0x00080002, &udc->usbcmd); 
+		while((readl(&udc->usbcmd)&2));	
+
+		writel(0x80000000, &udc->portsc);
+		writel(0x00080002, &udc->usbcmd); 
+
+		writel(0x00080002, &udc->usbcmd); 
+		writel(0x00080002, &udc->usbcmd); 
+		writel(0x00080002, &udc->usbcmd); 
+		writel(0x00080002, &udc->usbcmd); 
 		/* RESET */
 		writel(USBCMD_ITC(MICRO_8FRAME) | USBCMD_RST, &udc->usbcmd);
 		udelay(200);
@@ -939,6 +951,7 @@ static int ci_udc_probe(void)
 	TRACE();
 	struct ept_queue_head *head;
 	int i;
+
 
 	const int num = 2 * NUM_ENDPOINTS;
 
@@ -1029,6 +1042,9 @@ int usb_gadget_register_driver(struct usb_gadget_driver *driver)
 	TRACE();
 	int ret;
 
+	iotrace_set_buffer(0x91000000, 0x10000000);
+	iotrace_set_enabled(1);
+
 	if (!driver)
 		return -EINVAL;
 	if (!driver->bind || !driver->setup || !driver->disconnect)
@@ -1071,6 +1087,7 @@ int usb_gadget_unregister_driver(struct usb_gadget_driver *driver)
 	ci_ep_free_request(&controller.ep[0].ep, &controller.ep0_req->req);
 	free(controller.items_mem);
 	free(controller.epts);
+
 
 	return 0;
 }

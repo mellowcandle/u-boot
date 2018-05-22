@@ -58,6 +58,7 @@ static int msm_init_after_reset(struct ehci_ctrl *dev)
 	struct msm_ehci_priv *p = container_of(dev, struct msm_ehci_priv, ctrl);
 	struct usb_ehci *ehci = p->ehci;
 
+#if 0
 	/* select ULPI phy */
 	writel(PORT_PTS_ULPI, &ehci->portsc);
 	setup_usb_phy(p);
@@ -79,9 +80,9 @@ static int msm_init_after_reset(struct ehci_ctrl *dev)
 		/* set mode to host controller */
 		writel(CM_HOST, &ehci->usbmode);
 	} else {
-		writel(CM_DEVICE, &ehci->usbmode);
+//		writel(CM_DEVICE, &ehci->usbmode);
 	}
-
+#endif
 	return 0;
 }
 

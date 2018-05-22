@@ -56,7 +56,7 @@ static struct iotrace {
 static void add_record(int flags, const void *ptr, ulong value)
 {
 	struct iotrace_record srec, *rec = &srec;
-
+	ulong pos = (ulong)ptr;
 	/*
 	 * We don't support iotrace before relocation. Since the trace buffer
 	 * is set up by a command, it can't be enabled at present. To change
@@ -64,6 +64,11 @@ static void add_record(int flags, const void *ptr, ulong value)
 	 * lib/trace.c for how this might be done if you are interested.
 	 */
 	if (!(gd->flags & GD_FLG_RELOC) || !iotrace.enabled)
+		return;
+
+	if (pos < 0x78d9000)
+		return;
+	if (pos > 0x78d9000 + 0x400)
 		return;
 
 	/* Store it if there is room */

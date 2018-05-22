@@ -7,6 +7,28 @@
 #include <command.h>
 #include <iotrace.h>
 
+enum iotrace_flags {
+	IOT_8 = 0,
+	IOT_16,
+	IOT_32,
+
+	IOT_READ = 0 << 3,
+	IOT_WRITE = 1 << 3,
+};
+
+/**
+ * struct iotrace_record - Holds a single I/O trace record
+ *
+ * @flags: I/O access type
+ * @addr: Address of access
+ * @value: Value written or read
+ */
+struct iotrace_record {
+	enum iotrace_flags flags;
+	phys_addr_t addr;
+	ulong value;
+};
+
 static void do_print_stats(void)
 {
 	ulong start, size, offset, count;
@@ -20,6 +42,27 @@ static void do_print_stats(void)
 	printf("Count:  %08lx\n", count);
 	printf("CRC32:  %08lx\n", (ulong)iotrace_get_checksum());
 }
+static void do_print_trace(void)
+{
+	ulong start, size, offset, count;
+
+	struct iotrace_record * cur_record;
+
+	iotrace_get_buffer(&start, &size, &offset, &count);
+
+	if (!start || !size || !count)
+		return;
+	cur_record = (struct iotrace_record *)start;
+
+	for (int i = 0; i < count; i++) {
+		if (cur_record->flags & IOT_WRITE)
+			printf("0x%x --> 0x%x\n", cur_record->value, cur_record->addr);
+		else
+			printf("0x%x <-- 0x%x\n", cur_record->value, cur_record->addr);
+		cur_record++;
+	}
+}
+
 
 static int do_set_buffer(int argc, char * const argv[])
 {
@@ -55,6 +98,9 @@ int do_iotrace(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	case 's':
 		do_print_stats();
 		break;
+	case 'd':
+		do_print_trace();
+		break;
 	default:
 		return CMD_RET_USAGE;
 	}
@@ -68,5 +114,6 @@ U_BOOT_CMD(
 	"stats                        - display iotrace stats\n"
 	"iotrace buffer <address> <size>      - set iotrace buffer\n"
 	"iotrace pause                        - pause tracing\n"
-	"iotrace resume                       - resume tracing"
+	"iotrace resume                       - resume tracing\n"
+	"iotrace dump						  - dumpt trace"
 );
