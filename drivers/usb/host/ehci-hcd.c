@@ -1628,8 +1628,6 @@ int ehci_register(struct udevice *dev, struct ehci_hccr *hccr,
 	ctrl->priv = ctrl;
 
 	ctrl->init = init;
-	if (ctrl->init == USB_INIT_DEVICE)
-		goto done;
 
 	ret = ehci_reset(ctrl);
 	if (ret)
@@ -1640,6 +1638,9 @@ int ehci_register(struct udevice *dev, struct ehci_hccr *hccr,
 		if (ret)
 			goto err;
 	}
+
+	if (ctrl->init == USB_INIT_DEVICE)
+		goto done;
 
 	ret = ehci_common_init(ctrl, tweaks);
 	if (ret)

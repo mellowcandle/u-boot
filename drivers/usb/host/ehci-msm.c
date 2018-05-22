@@ -10,7 +10,6 @@
 #include <common.h>
 #include <dm.h>
 #include <errno.h>
-#include <fdtdec.h>
 #include <linux/libfdt.h>
 #include <usb.h>
 #include <usb/ehci-ci.h>
@@ -55,6 +54,7 @@ static void reset_usb_phy(struct msm_ehci_priv *priv)
 
 static int msm_init_after_reset(struct ehci_ctrl *dev)
 {
+	TRACE();
 	struct msm_ehci_priv *p = container_of(dev, struct msm_ehci_priv, ctrl);
 	struct usb_ehci *ehci = p->ehci;
 
@@ -75,8 +75,12 @@ static int msm_init_after_reset(struct ehci_ctrl *dev)
 	/* Bus access related config. */
 	writel(0x08, &ehci->sbusmode);
 
-	/* set mode to host controller */
-	writel(CM_HOST, &ehci->usbmode);
+	if (dev->init == USB_INIT_HOST) {
+		/* set mode to host controller */
+		writel(CM_HOST, &ehci->usbmode);
+	} else {
+		writel(CM_DEVICE, &ehci->usbmode);
+	}
 
 	return 0;
 }
@@ -87,7 +91,9 @@ static const struct ehci_ops msm_ehci_ops = {
 
 static int ehci_usb_probe(struct udevice *dev)
 {
+	TRACE();
 	struct msm_ehci_priv *p = dev_get_priv(dev);
+	struct usb_platdata *plat = dev_get_platdata(dev);
 	struct usb_ehci *ehci = p->ehci;
 	struct ehci_hccr *hccr;
 	struct ehci_hcor *hcor;
@@ -97,11 +103,13 @@ static int ehci_usb_probe(struct udevice *dev)
 	hcor = (struct ehci_hcor *)((phys_addr_t)hccr +
 			HC_LENGTH(ehci_readl(&(hccr)->cr_capbase)));
 
-	ret = board_usb_init(0, USB_INIT_HOST);
+	printf("hccr = 0x%x hcor=0x%x\n", (uint32_t)hccr, (uint32_t)hcor);
+
+	ret = board_usb_init(0, plat->init_type);
 	if (ret < 0)
 		return ret;
 
-	return ehci_register(dev, hccr, hcor, &msm_ehci_ops, 0, USB_INIT_HOST);
+	return ehci_register(dev, hccr, hcor, &msm_ehci_ops, 0, plat->init_type);
 }
 
 static int ehci_usb_remove(struct udevice *dev)
@@ -122,7 +130,6 @@ static int ehci_usb_remove(struct udevice *dev)
 	ret = board_usb_init(0, USB_INIT_DEVICE); /* Board specific hook */
 	if (ret < 0)
 		return ret;
-
 	/* Reset controller */
 	setbits_le32(&ehci->usbcmd, CMD_RESET);
 
@@ -144,6 +151,8 @@ static int ehci_usb_ofdata_to_platdata(struct udevice *dev)
 
 	if (priv->ehci == (void *)FDT_ADDR_T_NONE)
 		return -EINVAL;
+
+	dev->req_seq = 0;
 
 	/* Warning: this will not work if viewport address is > 64 bit due to
 	 * ULPI design.
@@ -167,5 +176,6 @@ U_BOOT_DRIVER(usb_ehci) = {
 	.remove = ehci_usb_remove,
 	.ops	= &ehci_usb_ops,
 	.priv_auto_alloc_size = sizeof(struct msm_ehci_priv),
+	.platdata_auto_alloc_size = sizeof(struct usb_platdata),
 	.flags	= DM_FLAG_ALLOC_PRIV_DMA,
 };
