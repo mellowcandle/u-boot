@@ -13,7 +13,7 @@
 #include <asm/arch/sysmap-apq8016.h>
 
 #define CONFIG_MISC_INIT_R /* To stop autoboot */
-
+#define CONFIG_IO_TRACE
 /* Physical Memory Map */
 #define CONFIG_NR_DRAM_BANKS		1
 #define PHYS_SDRAM_1			0x80000000

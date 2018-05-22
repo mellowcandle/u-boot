@@ -46,6 +46,9 @@ typedef volatile unsigned char	vu_char;
 
 #include <log.h>
 
+#define TRACE() printf("+%s\n", __PRETTY_FUNCTION__)
+#define HERE() printf("+%s: %d", __PRETTY_FUNCTION__, __LINE__)
+
 typedef void (interrupt_handler_t)(void *);
 
 #include <asm/u-boot.h> /* boot information for Linux kernel */

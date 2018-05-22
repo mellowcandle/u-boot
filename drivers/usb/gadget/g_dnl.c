@@ -5,6 +5,7 @@
  * Copyright (C) 2012 Samsung Electronics
  * Lukasz Majewski  <l.majewski@samsung.com>
  */
+#define DEBUG
 
 #include <common.h>
 #include <malloc.h>
@@ -49,6 +50,7 @@ static const char manufacturer[] = CONFIG_USB_GADGET_MANUFACTURER;
 
 void g_dnl_set_serialnumber(char *s)
 {
+	TRACE();
 	memset(g_dnl_serial, 0, MAX_STRING_SERIAL);
 	strncpy(g_dnl_serial, s, MAX_STRING_SERIAL - 1);
 }
@@ -91,6 +93,7 @@ static struct usb_gadget_strings *g_dnl_composite_strings[] = {
 
 static int g_dnl_unbind(struct usb_composite_dev *cdev)
 {
+	TRACE();
 	struct usb_gadget *gadget = cdev->gadget;
 
 	debug("%s: calling usb_gadget_disconnect for "
@@ -102,18 +105,21 @@ static int g_dnl_unbind(struct usb_composite_dev *cdev)
 
 static inline struct g_dnl_bind_callback *g_dnl_bind_callback_first(void)
 {
+	TRACE();
 	return ll_entry_start(struct g_dnl_bind_callback,
 				g_dnl_bind_callbacks);
 }
 
 static inline struct g_dnl_bind_callback *g_dnl_bind_callback_end(void)
 {
+	TRACE();
 	return ll_entry_end(struct g_dnl_bind_callback,
 				g_dnl_bind_callbacks);
 }
 
 static int g_dnl_do_config(struct usb_configuration *c)
 {
+	TRACE();
 	const char *s = c->cdev->driver->name;
 	struct g_dnl_bind_callback *callback = g_dnl_bind_callback_first();
 
@@ -128,6 +134,7 @@ static int g_dnl_do_config(struct usb_configuration *c)
 
 static int g_dnl_config_register(struct usb_composite_dev *cdev)
 {
+	TRACE();
 	struct usb_configuration *config;
 	const char *name = "usb_dnload";
 
@@ -149,28 +156,33 @@ static int g_dnl_config_register(struct usb_composite_dev *cdev)
 __weak
 int board_usb_init(int index, enum usb_init_type init)
 {
+	TRACE();
 	return 0;
 }
 
 __weak
 int board_usb_cleanup(int index, enum usb_init_type init)
 {
+	TRACE();
 	return 0;
 }
 
 __weak
 int g_dnl_bind_fixup(struct usb_device_descriptor *dev, const char *name)
 {
+	TRACE();
 	return 0;
 }
 
 __weak int g_dnl_get_board_bcd_device_number(int gcnum)
 {
+	TRACE();
 	return gcnum;
 }
 
 __weak int g_dnl_board_usb_cable_connected(void)
 {
+	TRACE();
 	return -EOPNOTSUPP;
 }
 
@@ -193,6 +205,7 @@ void g_dnl_clear_detach(void)
 
 static int g_dnl_get_bcd_device_number(struct usb_composite_dev *cdev)
 {
+	TRACE();
 	struct usb_gadget *gadget = cdev->gadget;
 	int gcnum;
 
@@ -211,6 +224,7 @@ static int g_dnl_get_bcd_device_number(struct usb_composite_dev *cdev)
 static int on_serialno(const char *name, const char *value, enum env_op op,
 		int flags)
 {
+	TRACE();
 	g_dnl_set_serialnumber((char *)value);
 	return 0;
 }
@@ -218,6 +232,7 @@ U_BOOT_ENV_CALLBACK(serialno, on_serialno);
 
 static int g_dnl_bind(struct usb_composite_dev *cdev)
 {
+	TRACE();
 	struct usb_gadget *gadget = cdev->gadget;
 	int id, ret;
 	int gcnum;
@@ -289,6 +304,7 @@ static struct usb_composite_driver g_dnl_driver = {
  */
 int g_dnl_register(const char *name)
 {
+	TRACE();
 	int ret;
 
 	debug("%s: g_dnl_driver.name = %s\n", __func__, name);
@@ -304,5 +320,6 @@ int g_dnl_register(const char *name)
 
 void g_dnl_unregister(void)
 {
+	TRACE();
 	usb_composite_unregister(&g_dnl_driver);
 }

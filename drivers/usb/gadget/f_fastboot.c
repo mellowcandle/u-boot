@@ -121,6 +121,7 @@ static struct usb_endpoint_descriptor *
 fb_ep_desc(struct usb_gadget *g, struct usb_endpoint_descriptor *fs,
 	    struct usb_endpoint_descriptor *hs)
 {
+	TRACE();
 	if (gadget_is_dualspeed(g) && g->speed == USB_SPEED_HIGH)
 		return hs;
 	return fs;
@@ -154,18 +155,21 @@ static char *fb_response_str;
 
 void fastboot_fail(const char *reason)
 {
+	TRACE();
 	strncpy(fb_response_str, "FAIL\0", 5);
 	strncat(fb_response_str, reason, FASTBOOT_RESPONSE_LEN - 4 - 1);
 }
 
 void fastboot_okay(const char *reason)
 {
+	TRACE();
 	strncpy(fb_response_str, "OKAY\0", 5);
 	strncat(fb_response_str, reason, FASTBOOT_RESPONSE_LEN - 4 - 1);
 }
 
 static void fastboot_complete(struct usb_ep *ep, struct usb_request *req)
 {
+	TRACE();
 	int status = req->status;
 	if (!status)
 		return;
@@ -174,6 +178,7 @@ static void fastboot_complete(struct usb_ep *ep, struct usb_request *req)
 
 static int fastboot_bind(struct usb_configuration *c, struct usb_function *f)
 {
+	TRACE();
 	int id;
 	struct usb_gadget *gadget = c->cdev->gadget;
 	struct f_fastboot *f_fb = func_to_fastboot(f);
@@ -220,11 +225,13 @@ static int fastboot_bind(struct usb_configuration *c, struct usb_function *f)
 
 static void fastboot_unbind(struct usb_configuration *c, struct usb_function *f)
 {
+	TRACE();
 	memset(fastboot_func, 0, sizeof(*fastboot_func));
 }
 
 static void fastboot_disable(struct usb_function *f)
 {
+	TRACE();
 	struct f_fastboot *f_fb = func_to_fastboot(f);
 
 	usb_ep_disable(f_fb->out_ep);
@@ -244,6 +251,7 @@ static void fastboot_disable(struct usb_function *f)
 
 static struct usb_request *fastboot_start_ep(struct usb_ep *ep)
 {
+	TRACE();
 	struct usb_request *req;
 
 	req = usb_ep_alloc_request(ep, 0);
@@ -264,6 +272,7 @@ static struct usb_request *fastboot_start_ep(struct usb_ep *ep)
 static int fastboot_set_alt(struct usb_function *f,
 			    unsigned interface, unsigned alt)
 {
+	TRACE();
 	int ret;
 	struct usb_composite_dev *cdev = f->config->cdev;
 	struct usb_gadget *gadget = cdev->gadget;
@@ -315,6 +324,7 @@ err:
 
 static int fastboot_add(struct usb_configuration *c)
 {
+	TRACE();
 	struct f_fastboot *f_fb = fastboot_func;
 	int status;
 
@@ -348,6 +358,7 @@ DECLARE_GADGET_BIND_CALLBACK(usb_dnl_fastboot, fastboot_add);
 
 static int fastboot_tx_write(const char *buffer, unsigned int buffer_size)
 {
+	TRACE();
 	struct usb_request *in_req = fastboot_func->in_req;
 	int ret;
 
@@ -364,21 +375,25 @@ static int fastboot_tx_write(const char *buffer, unsigned int buffer_size)
 
 static int fastboot_tx_write_str(const char *buffer)
 {
+	TRACE();
 	return fastboot_tx_write(buffer, strlen(buffer));
 }
 
 static void compl_do_reset(struct usb_ep *ep, struct usb_request *req)
 {
+	TRACE();
 	do_reset(NULL, 0, 0, NULL);
 }
 
 int __weak fb_set_reboot_flag(void)
 {
+	TRACE();
 	return -ENOSYS;
 }
 
 static void cb_reboot(struct usb_ep *ep, struct usb_request *req)
 {
+	TRACE();
 	char *cmd = req->buf;
 	if (!strcmp_l1("reboot-bootloader", cmd)) {
 		if (fb_set_reboot_flag()) {
@@ -392,6 +407,7 @@ static void cb_reboot(struct usb_ep *ep, struct usb_request *req)
 
 static int strcmp_l1(const char *s1, const char *s2)
 {
+	TRACE();
 	if (!s1 || !s2)
 		return -1;
 	return strncmp(s1, s2, strlen(s1));
@@ -399,6 +415,7 @@ static int strcmp_l1(const char *s1, const char *s2)
 
 static void cb_getvar(struct usb_ep *ep, struct usb_request *req)
 {
+	TRACE();
 	char *cmd = req->buf;
 	char response[FASTBOOT_RESPONSE_LEN];
 	const char *s;
@@ -455,6 +472,7 @@ static void cb_getvar(struct usb_ep *ep, struct usb_request *req)
 
 static unsigned int rx_bytes_expected(struct usb_ep *ep)
 {
+	TRACE();
 	int rx_remain = download_size - download_bytes;
 	unsigned int rem;
 	unsigned int maxpacket = ep->maxpacket;
@@ -480,6 +498,7 @@ static unsigned int rx_bytes_expected(struct usb_ep *ep)
 #define BYTES_PER_DOT	0x20000
 static void rx_handler_dl_image(struct usb_ep *ep, struct usb_request *req)
 {
+	TRACE();
 	char response[FASTBOOT_RESPONSE_LEN];
 	unsigned int transfer_size = download_size - download_bytes;
 	const unsigned char *buffer = req->buf;
@@ -531,6 +550,7 @@ static void rx_handler_dl_image(struct usb_ep *ep, struct usb_request *req)
 
 static void cb_download(struct usb_ep *ep, struct usb_request *req)
 {
+	TRACE();
 	char *cmd = req->buf;
 	char response[FASTBOOT_RESPONSE_LEN];
 
@@ -555,6 +575,7 @@ static void cb_download(struct usb_ep *ep, struct usb_request *req)
 
 static void do_bootm_on_complete(struct usb_ep *ep, struct usb_request *req)
 {
+	TRACE();
 	char boot_addr_start[12];
 	char *bootm_args[] = { "bootm", boot_addr_start, NULL };
 
@@ -569,17 +590,20 @@ static void do_bootm_on_complete(struct usb_ep *ep, struct usb_request *req)
 
 static void cb_boot(struct usb_ep *ep, struct usb_request *req)
 {
+	TRACE();
 	fastboot_func->in_req->complete = do_bootm_on_complete;
 	fastboot_tx_write_str("OKAY");
 }
 
 static void do_exit_on_complete(struct usb_ep *ep, struct usb_request *req)
 {
+	TRACE();
 	g_dnl_trigger_detach();
 }
 
 static void cb_continue(struct usb_ep *ep, struct usb_request *req)
 {
+	TRACE();
 	fastboot_func->in_req->complete = do_exit_on_complete;
 	fastboot_tx_write_str("OKAY");
 }
@@ -587,6 +611,7 @@ static void cb_continue(struct usb_ep *ep, struct usb_request *req)
 #ifdef CONFIG_FASTBOOT_FLASH
 static void cb_flash(struct usb_ep *ep, struct usb_request *req)
 {
+	TRACE();
 	char *cmd = req->buf;
 	char response[FASTBOOT_RESPONSE_LEN];
 
@@ -616,7 +641,8 @@ static void cb_flash(struct usb_ep *ep, struct usb_request *req)
 
 static void cb_oem(struct usb_ep *ep, struct usb_request *req)
 {
-	char *cmd = req->buf;
+	TRACE();
+   	char *cmd = req->buf;
 #ifdef CONFIG_FASTBOOT_FLASH_MMC_DEV
 	if (strncmp("format", cmd + 4, 6) == 0) {
 		char cmdbuf[32];
@@ -639,6 +665,7 @@ static void cb_oem(struct usb_ep *ep, struct usb_request *req)
 #ifdef CONFIG_FASTBOOT_FLASH
 static void cb_erase(struct usb_ep *ep, struct usb_request *req)
 {
+	TRACE();
 	char *cmd = req->buf;
 	char response[FASTBOOT_RESPONSE_LEN];
 
@@ -702,6 +729,7 @@ static const struct cmd_dispatch_info cmd_dispatch_info[] = {
 
 static void rx_handler_command(struct usb_ep *ep, struct usb_request *req)
 {
+	TRACE();
 	char *cmdbuf = req->buf;
 	void (*func_cb)(struct usb_ep *ep, struct usb_request *req) = NULL;
 	int i;

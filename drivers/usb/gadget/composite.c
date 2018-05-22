@@ -1079,6 +1079,7 @@ static struct usb_gadget_driver composite_driver = {
  */
 int usb_composite_register(struct usb_composite_driver *driver)
 {
+	TRACE();
 	int res;
 
 	if (!driver || !driver->dev || !driver->bind || composite)

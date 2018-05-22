@@ -296,6 +296,7 @@ err1:
 
 int usb_gadget_probe_driver(struct usb_gadget_driver *driver)
 {
+	TRACE();
 	struct usb_udc		*udc = NULL;
 	int			ret;
 
@@ -308,7 +309,7 @@ int usb_gadget_probe_driver(struct usb_gadget_driver *driver)
 		if (!udc->driver)
 			goto found;
 	}
-
+	HERE();
 	printf("couldn't find an available UDC\n");
 	mutex_unlock(&udc_lock);
 	return -ENODEV;
@@ -321,6 +322,7 @@ EXPORT_SYMBOL_GPL(usb_gadget_probe_driver);
 
 int usb_gadget_register_driver(struct usb_gadget_driver *driver)
 {
+	TRACE();
 	return usb_gadget_probe_driver(driver);
 }
 EXPORT_SYMBOL_GPL(usb_gadget_register_driver);

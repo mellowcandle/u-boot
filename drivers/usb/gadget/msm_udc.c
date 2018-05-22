@@ -51,6 +51,22 @@ static struct usb_ep_ops msm_ep_ops = {
 	.free_request   = msm_ep_free_request,
 };
 
+static int msm_pullup(struct usb_gadget *gadget, int is_on)
+{
+	return 0;
+}
+
+static struct usb_gadget_ops msm_udc_ops = {
+	.pullup = msm_pullup,
+};
+
+static struct usb_gadget	gadget = {
+		.name	= "msm_udc",
+		.ops	= &msm_udc_ops,
+		.is_dualspeed = 1
+};
+
+
 int usb_gadget_unregister_driver(struct usb_gadget_driver *driver)
 {
 	TRACE();
@@ -60,11 +76,16 @@ int usb_gadget_unregister_driver(struct usb_gadget_driver *driver)
 int usb_gadget_register_driver(struct usb_gadget_driver *driver)
 {
 	TRACE();
+	int ret;
+
+	struct ehci_ctrl * control;
+	ret = usb_setup_ehci_gadget(&control);
+	printf("usb_setup_ehci_gadget returns: %d\n", ret);
 	return 0;
 }
 int usb_gadget_handle_interrupts(int index)
 {
-	TRACE();
+//	TRACE();
 	return 1;
 }
 
