@@ -12,16 +12,23 @@
 #include <asm/arch/sysmap-apq8016.h>
 
 #define CONFIG_MISC_INIT_R /* To stop autoboot */
-
+#define CONFIG_GICV2
 /* Physical Memory Map */
 #define CONFIG_NR_DRAM_BANKS		1
 #define PHYS_SDRAM_1			0x80000000
 /* 1008 MB (the last ~30Mb are secured for TrustZone by ATF*/
 #define PHYS_SDRAM_1_SIZE		0x3da00000
 #define CONFIG_SYS_SDRAM_BASE		PHYS_SDRAM_1
-#define CONFIG_SYS_INIT_SP_ADDR		(CONFIG_SYS_SDRAM_BASE + 0x7fff0)
-#define CONFIG_SYS_LOAD_ADDR		(CONFIG_SYS_SDRAM_BASE + 0x80000)
+#define CONFIG_SYS_INIT_SP_ADDR		(CONFIG_SYS_SDRAM_BASE + 0xffffff0)
+#define CONFIG_SYS_LOAD_ADDR		(CONFIG_SYS_SDRAM_BASE + 0xf600000)
 #define CONFIG_SYS_BOOTM_LEN		SZ_64M
+
+#define CONFIG_NET_RANDOM_ETHADDR
+
+#define CONFIG_SERVERIP 192.168.1.18
+#define CONFIG_IPADDR 192.168.1.26
+#define CONFIG_GATEWAYIP 192.168.1.1
+#define CONFIG_NETMASK  255.255.255.0
 
 /* UART */
 
@@ -80,16 +87,9 @@ REFLASH(dragonboard/u-boot.img, 8)\
 /* Environment */
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"reflash="CONFIG_ENV_REFLASH"\0"\
-	"loadaddr=0x81000000\0" \
 	"fdt_high=0xffffffffffffffff\0" \
-	"initrd_high=0xffffffffffffffff\0" \
-	"linux_image=Image\0" \
-	"kernel_addr_r=0x81000000\0"\
-	"fdtfile=qcom/apq8016-sbc.dtb\0" \
-	"fdt_addr_r=0x83000000\0"\
-	"ramdisk_addr_r=0x84000000\0"\
-	"scriptaddr=0x90000000\0"\
-	"pxefile_addr_r=0x90100000\0"\
+	"reload=mmc dev 0 && usb start && "REFLASH(u-boot,7)"\0"\
+	"loadaddr=0x91000000\0" \
 	BOOTENV
 
 #define CONFIG_ENV_SIZE			0x2000
