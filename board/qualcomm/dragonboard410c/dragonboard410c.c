@@ -169,6 +169,8 @@ int ft_board_setup(void *blob, bd_t *bd)
 					   fix[i].property, mac, ARP_HLEN, 1);
 	}
 
+	msm_fixup_memory(blob);
+
 	return 0;
 }
 
