@@ -9,16 +9,15 @@
 
 OUTPUT_FORMAT("elf64-littleaarch64", "elf64-littleaarch64", "elf64-littleaarch64")
 OUTPUT_ARCH(aarch64)
-ENTRY(_arm64_header)
+ENTRY(_start)
 SECTIONS
 {
-	. = 0x00000000;
+	. = 0x8F600000;
 
 	. = ALIGN(8);
 	.text :
 	{
 		*(.__image_copy_start)
-		board/qualcomm/dragonboard410c/head.o (.text*)
 		CPUDIR/start.o (.text*)
 	}
 
