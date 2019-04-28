@@ -106,6 +106,9 @@ obj-$(CONFIG_CMD_PART) += part.o
 ifdef CONFIG_PCI
 obj-$(CONFIG_CMD_PCI) += pci.o
 endif
+ifdef CONFIG_PCI_ENDPOINT
+obj-$(CONFIG_CMD_PCI_ENDPOINT) += pci_ep.o
+endif
 obj-$(CONFIG_CMD_PCMCIA) += pcmcia.o
 obj-$(CONFIG_CMD_PINMUX) += pinmux.o
 obj-$(CONFIG_CMD_PXE) += pxe.o

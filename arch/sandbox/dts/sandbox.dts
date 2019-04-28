@@ -172,6 +172,10 @@
 		};
 	};
 
+	pci_ep: pci_ep {
+		compatible = "sandbox,pci_ep";
+	};
+
 	pinctrl {
 		compatible = "sandbox,pinctrl";
 		status = "okay";

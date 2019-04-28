@@ -120,6 +120,7 @@ config SANDBOX
 	imply VIRTIO_NET
 	imply DM_SOUND
 	imply PCI_SANDBOX_EP
+	imply CMD_PCI_ENDPOINT
 	imply PCH
 
 config SH

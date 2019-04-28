@@ -956,6 +956,13 @@ config CMD_PCI
 	  peripherals. Sub-commands allow bus enumeration, displaying and
 	  changing configuration space and a few other features.
 
+config CMD_PCI_ENDPOINT
+	bool "pci_ep - show PCI endpoint configuration"
+	help
+	  Provide access to PCI (Peripheral Interconnect Bus) endpoint
+	  devices configuration, displaying BAR (Base Address Registers),
+	  configurated header (Vendor ID, Device ID, etc).
+
 config CMD_PCMCIA
 	bool "pinit - Set up PCMCIA device"
 	help
