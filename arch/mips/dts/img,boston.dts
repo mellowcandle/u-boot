@@ -14,6 +14,9 @@
 		stdout-path = &uart0;
 	};
 
+	aliases {
+		ethernet0 = &cdns_macb_gem0;
+	};
 	cpus {
 		#address-cells = <1>;
 		#size-cells = <0>;
@@ -41,6 +44,23 @@
 			compatible = "mti,gic-timer";
 			interrupts = <GIC_LOCAL 1 IRQ_TYPE_NONE>;
 			clocks = <&clk_boston BOSTON_CLK_CPU>;
+		};
+	};
+
+	cdns_macb_gem0: eth0@10000000 {
+		compatible = "cdns,macb";
+		device_type = "network";
+		reg = <0x10000000 0x100000>;
+//		clocks = <&pclk>;
+		phy-mode = "sgmii";
+		phy-handle = <&phy0>;
+		mdio {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			phy0: phy@0 {
+				device_type = "ethernet-phy";
+				reg = <0x0e>;
+			};
 		};
 	};
 
