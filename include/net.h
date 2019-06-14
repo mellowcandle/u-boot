@@ -630,6 +630,51 @@ bool arp_is_waiting(void);		/* Waiting for ARP reply? */
 void net_set_icmp_handler(rxhand_icmp_f *f); /* Set ICMP RX handler */
 void net_set_timeout_handler(ulong, thand_f *);/* Set timeout handler */
 
+/* PCAP extension */
+
+/**
+ * pcap_init() - Initialize PCAP memory buffer
+ *
+ * @paddr	physicaly memory address to store buffer
+ * @size	maximum size of capture file in memory
+ *
+ * @return	0 on success, -ERROR on error
+ */
+int pcap_init(phys_addr_t paddr, unsigned long size);
+
+/**
+ * pcap_start_stop() - start / stop pcap capture
+ *
+ * @start	if true, start capture if false stop capture
+ *
+ * @return	0 on success, -ERROR on error
+ */
+int pcap_start_stop(bool start);
+
+/**
+ * pcap_clear() - clear pcap capture buffer and statistics
+ *
+ * @return	0 on success, -ERROR on error
+ */
+int pcap_clear(void);
+
+/**
+ * pcap_print_status() - print status of pcap capture
+ *
+ * @return	0 on success, -ERROR on error
+ */
+int pcap_print_status(void);
+
+/**
+ * pcap_post() - Post a packet to PCAP file
+ *
+ * @packet:	packet to post
+ * @len:	packet length in bytes
+ * @outgoing	packet direction (outgoing/incoming)
+ * @return	0 on success, -ERROR on error
+ */
+int pcap_post(const void *packet, size_t len, bool outgoing);
+
 /* Network loop state */
 enum net_loop_state {
 	NETLOOP_CONTINUE,
@@ -658,6 +703,10 @@ static inline void net_send_packet(uchar *pkt, int len)
 {
 	/* Currently no way to return errors from eth_send() */
 	(void) eth_send(pkt, len);
+
+#if defined(CONFIG_CMD_PCAP)
+	pcap_post(pkt, len, true);
+#endif
 }
 
 /*
