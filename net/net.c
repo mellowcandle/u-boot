@@ -387,6 +387,10 @@ void net_init(void)
 
 		/* Only need to setup buffer pointers once. */
 		first_call = 0;
+
+#if defined (CONFIG_NET_PCAP)
+		pcap_init();
+#endif
 	}
 
 	net_init_loop();
@@ -671,6 +675,10 @@ done:
 	net_set_icmp_handler(NULL);
 #endif
 	net_set_state(prev_net_state);
+
+#if defined (CONFIG_NET_PCAP)
+	printf("PCAP len: 0x%x\n", pcap_size());
+#endif
 	return ret;
 }
 
@@ -1083,6 +1091,9 @@ void net_process_received_packet(uchar *in_packet, int len)
 
 	debug_cond(DEBUG_NET_PKT, "packet received\n");
 
+#if defined (CONFIG_NET_PCAP)
+	pcap_post(in_packet, len);
+#endif
 	net_rx_packet = in_packet;
 	net_rx_packet_len = len;
 	et = (struct ethernet_hdr *)in_packet;

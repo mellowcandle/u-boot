@@ -630,6 +630,31 @@ bool arp_is_waiting(void);		/* Waiting for ARP reply? */
 void net_set_icmp_handler(rxhand_icmp_f *f); /* Set ICMP RX handler */
 void net_set_timeout_handler(ulong, thand_f *);/* Set timeout handler */
 
+/* PCAP extension */
+
+/**
+ * pcap_init() - Initialize PCAP memory buffer
+ *
+ * @return	0 on success, -ERROR on error
+ */
+int pcap_init(void);
+
+/**
+ * pcap_post() - Post a packet to PCAP file
+ *
+ * @packet:	packet to post
+ * @len:	packet length in bytes
+ * @return	0 on success, -ERROR on error
+ */
+int pcap_post(const void *packet, size_t len);
+
+/**
+ * pcap_size() - get size of PCAP file
+ *
+ * @return	size of PCAP file in bytes
+ */
+unsigned int pcap_size(void);
+
 /* Network loop state */
 enum net_loop_state {
 	NETLOOP_CONTINUE,
@@ -658,6 +683,10 @@ static inline void net_send_packet(uchar *pkt, int len)
 {
 	/* Currently no way to return errors from eth_send() */
 	(void) eth_send(pkt, len);
+
+#if defined(CONFIG_NET_PCAP)
+	pcap_post(pkt, len);
+#endif
 }
 
 /*
@@ -873,5 +902,6 @@ unsigned int random_port(void);
 int update_tftp(ulong addr, char *interface, char *devstring);
 
 /**********************************************************************/
+
 
 #endif /* __NET_H__ */

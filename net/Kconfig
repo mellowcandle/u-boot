@@ -8,6 +8,28 @@ menuconfig NET
 
 if NET
 
+config NET_PCAP
+	bool "PCAP network capture"
+	help
+	  Selecting this will capture all Ethernet packets and store
+	  them in a PCAP formated file later to be analyzed by PCAP
+	  reader application (IE. WireShark).
+
+config NET_PCAP_ADDR
+	hex "Address of PCAP file in memory"
+	depends on NET_PCAP
+	help
+	  Sets the address of the PCAP file in physical memory.
+
+config NET_PCAP_SIZE
+	hex "Size of PCAP file"
+	depends on NET_PCAP
+	default 0x100000
+	help
+	  Sets the maximum size of PCAP file in bytes.
+	  When it fills up completly, it will stop capturing
+	  packets silently.
+
 config NET_RANDOM_ETHADDR
 	bool "Random ethaddr if unset"
 	help
